@@ -1,10 +1,28 @@
 const { language } = require('../../models')
 const { LANGUAGE_ROUTES_ROOT_PATH, API_ROOT_PATH } = require('../constants/url_paths')
 
-const log = require('../helpers/debug')
 
-function create(req, res) {
+
+/**
+ * Fetch specific language from database
+ * @param {*} req HTTP Request
+ * @param {*} res HTTP Response
+ */
+async function create(req, res) {
     try {
+        const { name, speak, write, listen } = req.body
+        if (!(name && speak && write && listen)) {
+            return res.status(400).json({ error: 'Requête invalide, tous les champs doivent être renseignés' })
+        }
+
+        const newLang = await language.create({ name, speak, write, listen })
+        return res.status(201).json({
+            newLang: newLang,
+            href: {
+                type: 'GET',
+                url: `${req.protocol}://${req.get('host')}${API_ROOT_PATH}${LANGUAGE_ROUTES_ROOT_PATH}/`
+            }
+        })
 
 
     } catch (err) {
