@@ -1,12 +1,22 @@
-//importer la db
-//importer le model
+const Language = require('../../models/language')
+const log = require('../helpers/debug')
+
+log('Model', Language)
 
 function create(req, res) {
+
     return res.json('Création d\'un nouveau language')
 }
 
-function findAll(req, res) {
-    return res.json('Listing de tous les langues')
+async function findAll(req, res) {
+    try {
+        const data = await Language.findAll({ attributes: ['id', 'write'] })
+        log('GEL language', data)
+        return res.status(200).json({ languages: data })
+
+    } catch (err) {
+        res.status(500).json({ error: err })
+    }
 }
 
 function findById(req, res) {

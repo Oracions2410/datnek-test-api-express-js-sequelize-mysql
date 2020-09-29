@@ -5,9 +5,9 @@ const { create, findAll, findById, updateAll, update, remove } = require('../con
 
 router.post(LANGUAGE_ROUTES_ROOT_PATH, create)
 router.get(LANGUAGE_ROUTES_ROOT_PATH, findAll)
-router.get(LANGUAGE_ROUTES_ROOT_PATH, findById)
-router.put(LANGUAGE_ROUTES_ROOT_PATH, updateAll)
-router.patch(LANGUAGE_ROUTES_ROOT_PATH, update)
-router.delete(LANGUAGE_ROUTES_ROOT_PATH, remove)
+router.get(`${LANGUAGE_ROUTES_ROOT_PATH}/:id`, findById)
+router.put(`${LANGUAGE_ROUTES_ROOT_PATH}/:id`, updateAll)
+router.patch(`${LANGUAGE_ROUTES_ROOT_PATH}/:id`, update)
+router.delete(`${LANGUAGE_ROUTES_ROOT_PATH}/:id`, remove)
 
 module.exports = router
