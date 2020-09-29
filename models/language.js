@@ -14,6 +14,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   };
   language.init({
+    name: DataTypes.STRING,
     speak: DataTypes.INTEGER,
     write: DataTypes.INTEGER,
     listen: DataTypes.INTEGER

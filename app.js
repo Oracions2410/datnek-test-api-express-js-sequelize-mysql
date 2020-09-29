@@ -10,7 +10,7 @@ const { API_ROOT_PATH, LANGUAGE_ROUTES_ROOT_PATH } = require('./api/constants/ur
 
 const port = process.env.PORT
 app.use('/ping', (req, res) => {
-    res.send(`Le server est en écoute sur ${req.protocol}://${req.host}:${port}`)
+    res.send(`Le serveur est en cours d\'exécution sur <span style="font-weight: bold;color: coral">${req.protocol}://${req.host}:${process.env.PORT}</span>`)
 })
 
 app.use(morgan('dev'))
@@ -19,8 +19,8 @@ app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 
 
-const log = require('./api/helpers/debug')
-log('path', API_ROOT_PATH + LANGUAGE_ROUTES_ROOT_PATH)
+// const log = require('./api/helpers/debug')
+// log('path', API_ROOT_PATH + LANGUAGE_ROUTES_ROOT_PATH)
 
 app.use(API_ROOT_PATH, languageRoutes)
 
