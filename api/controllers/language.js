@@ -1,29 +1,31 @@
 const { language } = require('../../models')
 const { LANGUAGE_ROUTES_ROOT_PATH, API_ROOT_PATH } = require('../constants/url_paths')
-
-
+const log = require('../helpers/debug')
 
 /**
- * Fetch specific language from database
- * @param {*} req HTTP Request
- * @param {*} res HTTP Response
+ * Store a new language
+ * @param {*} req 
+ * @param {*} res 
  */
-async function create(req, res) {
+function create(req, res) {
     try {
         const { name, speak, write, listen } = req.body
         if (!(name && speak && write && listen)) {
             return res.status(400).json({ error: 'Requête invalide, tous les champs doivent être renseignés' })
         }
 
-        const newLang = await language.create({ name, speak, write, listen })
-        return res.status(201).json({
-            newLang: newLang,
-            href: {
-                type: 'GET',
-                url: `${req.protocol}://${req.get('host')}${API_ROOT_PATH}${LANGUAGE_ROUTES_ROOT_PATH}/`
-            }
-        })
+        language.create({ name, speak, write, listen })
+            .then(newLang => {
 
+                return res.status(201).json({
+                    newLang: newLang,
+                    href: {
+                        type: 'GET',
+                        url: `${req.protocol}://${req.get('host')}${API_ROOT_PATH}${LANGUAGE_ROUTES_ROOT_PATH}/`
+                    }
+                })
+
+            })
 
     } catch (err) {
         res.status(500).json({ error: 'Impossible de créer la langue: ', err })
@@ -36,14 +38,57 @@ async function create(req, res) {
  * @param {*} req HTTP Request
  * @param {*} res HTTP Response
  */
-async function findAll(req, res) {
+function findAll(req, res) {
     try {
-        const languages = await language.findAll()
+        language.findAll()
+            .then(languages => {
 
-        return res.status(200).json({
-            count: languages.length,
-            languages: languages.map(lang => {
-                return {
+                return res.status(200).json({
+                    count: languages.length,
+                    languages: languages.map(lang => {
+                        return {
+                            id: lang.id,
+                            name: lang.name,
+                            speak: lang.speak,
+                            write: lang.write,
+                            listen: lang.listen,
+                            createdAt: lang.createdAt,
+                            updatedAt: lang.updatedAt,
+                            href: {
+                                type: 'GET',
+                                url: `${req.protocol}://${req.get('host')}${API_ROOT_PATH}${LANGUAGE_ROUTES_ROOT_PATH}/${lang.id}`
+                            }
+                        }
+                    })
+                })
+            })
+
+
+    } catch (err) {
+        res.status(500).json({ error: 'Impossible de charger les langues: ' + err })
+    }
+}
+
+
+
+
+/**
+ * Fetch specific language from database
+ * @param {*} req HTTP Request
+ * @param {*} res HTTP Response
+ */
+function findById(req, res) {
+    const { languageId } = req.params
+    //log('id', id)
+    try {
+        language.findByPk(languageId)
+            .then(lang => {
+
+                if (lang === null) {
+                    return res.status(404).json({ error: 'Le language d\'identifiant ' + languageId + ' est introuvable' })
+                }
+
+                res.status(200).json({
                     id: lang.id,
                     name: lang.name,
                     speak: lang.speak,
@@ -53,52 +98,134 @@ async function findAll(req, res) {
                     updatedAt: lang.updatedAt,
                     href: {
                         type: 'GET',
-                        url: `${req.protocol}://${req.get('host')}${API_ROOT_PATH}${LANGUAGE_ROUTES_ROOT_PATH}/${lang.id}`
+                        url: `${req.protocol}://${req.get('host')}${API_ROOT_PATH}${LANGUAGE_ROUTES_ROOT_PATH}`
                     }
-                }
+                })
             })
-        })
+
 
     } catch (err) {
-        res.status(500).json({ error: 'Impossible de charger les langues: ' + err })
+        res.status(500).json({ error: 'Impossible de charger la langue d\'identifiant: ' + languageId })
     }
+
 }
 
 
 
-async function findById(req, res) {
-    const id = req.params.languageId
+
+/**
+ * Met à jours tous les attributs d'une langue
+ * @param {*} req 
+ * @param {*} res 
+ */
+function updateAll(req, res) {
+    const { languageId } = req.params
     try {
-        const lang = await language.findByPk(id)
-        log('show lang', lang)
-        res.status(200).json({
-            id: lang.id,
-            speak: lang.speak,
-            write: lang.write,
-            listen: lang.listen,
-            href: {
-                type: 'GET',
-                url: `${req.protocol}://${req.get('host')}${API_ROOT_PATH}${LANGUAGE_ROUTES_ROOT_PATH}`
+
+        const { name, speak, write, listen } = req.body
+        if (!(name && speak && write && listen)) {
+            return res.status(400).json({ error: 'Mauvaise requête, vous devez reseigner tous les champs' })
+        }
+
+        language.update({ name, speak, write, listen }, {
+            where: { id: languageId }
+        }).then(response => {
+            if (response == 1) {
+                res.status(200).json({
+                    message: 'La langue a bien été mise à jour',
+                    href: {
+                        type: 'GET',
+                        url: `${req.protocol}://${req.get('host')}${API_ROOT_PATH}${LANGUAGE_ROUTES_ROOT_PATH}/${languageId}`
+                    }
+                })
+            } else {
+                res.status(500).json({ error: 'Impossible de mettre la langue à jours' })
             }
         })
 
     } catch (err) {
-        res.status(500).json({ error: 'Impossible de charger la langue d\'identifiant: ' + id })
+        res.status(500).json({ error: 'Impossible de mettre à jour la langue d\'identifiant: ' + languageId })
     }
-
 }
 
-function updateAll(req, res) {
-    return res.json('Mise à jour de tous les attributs d\'une langue')
-}
 
+
+/**
+ * Update specific fields
+ * @param {*} req 
+ * @param {*} res 
+ */
 function update(req, res) {
-    return res.json('Listing de quelques attributs d\'une langue')
+    const { languageId } = req.params
+
+    try {
+        const { name, speak, write, listen } = req.body
+        if (!(name || speak || write || listen)) {
+            return res.status(400).json({ erreur: 'mauvaise requête, vous devez fournir au moins un des champs' })
+        }
+
+        const toUpdate = { updatedAt: Date.now() }
+        const inputKeys = Object.keys(req.body)
+
+        if (inputKeys.includes('name')) toUpdate.name = name
+        if (inputKeys.includes('speak')) toUpdate.speak = speak
+        if (inputKeys.includes('write')) toUpdate.write = write
+        if (inputKeys.includes('listen')) toUpdate.listen = listen
+
+        language.update(toUpdate, {
+            where: { id: languageId }
+        }).then(response => {
+            if (response == 1) {
+                res.status(200).json({
+                    message: 'La langue a bien été mise à jour',
+                    href: {
+                        type: 'GET',
+                        url: `${req.protocol}://${req.get('host')}${API_ROOT_PATH}${LANGUAGE_ROUTES_ROOT_PATH}/${languageId}`
+                    }
+                })
+            } else {
+                res.status(500).json({ error: 'Impossible de mettre la langue à jours' })
+            }
+        })
+
+    } catch (err) {
+        res.status(500).json({ error: 'Impossible de mettre à jour la langue d\'identifiant: ' + languageId })
+    }
 }
+
+
+
 
 function remove(req, res) {
-    return res.json('Suppression d\'une langue')
+    const { languageId } = req.params
+    try {
+
+        language.destroy({
+            where: { id: languageId }
+        }).then(response => {
+            if (response === 1) {
+                res.status(200).json({
+                    message: 'La langue a belle et bien été supprimé',
+                    href: {
+                        type: 'POST',
+                        body: {
+                            speak: 'Integer',
+                            write: 'Integer',
+                            listen: 'Integer'
+                        },
+                        url: `${req.protocol}://${req.get('host')}${API_ROOT_PATH}${LANGUAGE_ROUTES_ROOT_PATH}`
+                    }
+                })
+            } else {
+                res.status(500).json({ error: 'Impossible de supprimer la langue d\'identifiant: ' })
+            }
+        })
+
+    } catch (err) {
+        res.status(500).json({ error: 'Impossible de supprimer la langue d\'identifiant: ' + languageId })
+    }
 }
+
 
 module.exports = {
     create,
