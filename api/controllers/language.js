@@ -9,12 +9,12 @@ const log = require('../helpers/debug')
  */
 function create(req, res) {
     try {
-        const { name, speak, write, listen } = req.body
-        if (!(name && speak && write && listen)) {
-            return res.status(400).json({ error: 'Requête invalide, tous les champs doivent être renseignés' })
+        const { name, speak, write, listen, notation } = req.body
+        if (!(name && speak && write && listen, notation)) {
+            return res.status(400).json({ error: 'Requête invalide, tous les champs doivent être renseignés. (name, speak, write, listen, notation)' })
         }
 
-        language.create({ name, speak, write, listen })
+        language.create({ name, speak, write, listen, notation })
             .then(newLang => {
 
                 return res.status(201).json({
@@ -49,6 +49,7 @@ function findAll(req, res) {
                         return {
                             id: lang.id,
                             name: lang.name,
+                            notation: lang.notation,
                             speak: lang.speak,
                             write: lang.write,
                             listen: lang.listen,
@@ -91,6 +92,7 @@ function findById(req, res) {
                 res.status(200).json({
                     id: lang.id,
                     name: lang.name,
+                    notation: lang.notation,
                     speak: lang.speak,
                     write: lang.write,
                     listen: lang.listen,
@@ -122,12 +124,12 @@ function updateAll(req, res) {
     const { languageId } = req.params
     try {
 
-        const { name, speak, write, listen } = req.body
-        if (!(name && speak && write && listen)) {
-            return res.status(400).json({ error: 'Mauvaise requête, vous devez reseigner tous les champs' })
+        const { name, speak, write, listen, notation } = req.body
+        if (!(name && speak && write && listen, notation)) {
+            return res.status(400).json({ error: 'Mauvaise requête, vous devez reseigner tous les champs. (name, speak, write, listen, notation)' })
         }
 
-        language.update({ name, speak, write, listen }, {
+        language.update({ name, speak, write, listen, notation }, {
             where: { id: languageId }
         }).then(response => {
             if (response == 1) {
@@ -159,9 +161,9 @@ function update(req, res) {
     const { languageId } = req.params
 
     try {
-        const { name, speak, write, listen } = req.body
-        if (!(name || speak || write || listen)) {
-            return res.status(400).json({ erreur: 'mauvaise requête, vous devez fournir au moins un des champs' })
+        const { name, speak, write, listen, notation } = req.body
+        if (!(name || speak || write || listen, notation)) {
+            return res.status(400).json({ erreur: 'mauvaise requête, vous devez fournir au moins un des champs. (name, speak, write, listen)' })
         }
 
         const toUpdate = { updatedAt: Date.now() }
@@ -171,6 +173,7 @@ function update(req, res) {
         if (inputKeys.includes('speak')) toUpdate.speak = speak
         if (inputKeys.includes('write')) toUpdate.write = write
         if (inputKeys.includes('listen')) toUpdate.listen = listen
+        if (inputKeys.includes('notation')) toUpdate.notation = notation
 
         language.update(toUpdate, {
             where: { id: languageId }
@@ -209,6 +212,8 @@ function remove(req, res) {
                     href: {
                         type: 'POST',
                         body: {
+                            name: 'String',
+                            notation: 'String',
                             speak: 'Integer',
                             write: 'Integer',
                             listen: 'Integer'

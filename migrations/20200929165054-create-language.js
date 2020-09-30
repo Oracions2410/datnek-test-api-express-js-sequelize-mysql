@@ -8,6 +8,14 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
+      name: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
+      notation: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
       speak: {
         type: Sequelize.INTEGER,
         allowNull: false
